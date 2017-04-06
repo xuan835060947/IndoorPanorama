@@ -1,0 +1,140 @@
+apply plugin: 'com.android.model.application'
+model {
+    android {
+        compileSdkVersion 23
+        buildToolsVersion "23.0.3"
+
+        defaultConfig {
+            applicationId "com.aaron.indoorpanorama"
+            minSdkVersion.apiLevel = 14  //最低版本的SDK设置
+            targetSdkVersion.apiLevel = 23  //编译SDK设置
+            versionCode = 1   //注意加 = 号
+            versionName = "1.0"
+        }
+
+        /*
+         * 设置NDK编译moduleName
+         */
+        ndk {
+            moduleName = 'image-proc'
+            cppFlags.add("-std=c++11")
+            cppFlags.add("-frtti")
+            cppFlags.add("-fexceptions")
+            cppFlags.add("-I${file("../native/jni/include")}".toString())
+            cppFlags.add("-I${file("../native/jni/include/opencv")}".toString())
+            ldLibs.addAll(["android", "EGL", "GLESv2", "dl", "log", "z"]) //编译需要
+            stl = 'gnustl_shared' //能够实现C++代码自动提示的关键
+        }
+//        signingConfigs {
+//            sign {
+//                storeFile file("/Users/meizu/Documents/xuan/apk-key/xuan-apk.jks")
+//                storePassword "835060947"
+//                keyAlias "work"
+//                keyPassword "835060947"
+//            }
+//        }
+//
+//        buildTypes {
+//            debug{
+//                signingConfig signingConfigs.sign
+//                minifyEnabled true
+//                zipAlignEnabled false
+//                shrinkResources false
+//                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//            }
+//
+//            release {
+//                signingConfig signingConfigs.sign
+//                minifyEnabled true
+//                zipAlignEnabled true
+//                shrinkResources false
+//                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//                applicationVariants.all { variant ->
+//                    def file = variant.outputs[0].outputFile
+//                    def fileName = "IndoorPanorama_v${defaultConfig.versionName}.apk"
+//                    variant.outputs[0].outputFile = new File(file.parent, fileName)
+//                }
+//            }
+//        }
+        buildTypes {
+            release {
+                minifyEnabled false
+                proguardFiles.add(file('proguard-rules.txt'))//这里不是原来的那个了
+            }
+        }
+
+        productFlavors {
+            create("arm") {
+                ndk.with {
+                    abiFilters.add("armeabi")
+                    String libsDir = getProjectDir().getParent() + "/native/libs/armeabi/"
+                    String thirdPartyDir = getProjectDir().getParent() + "/native/3rdparty/libs/armeabi/"
+
+//                    ldFlags.add(libsDir + "libopencv_stitching.a")
+                    ldFlags.add(libsDir + "libopencv_imgcodecs.a")
+                    ldFlags.add(thirdPartyDir + "liblibjpeg.a")
+                    ldFlags.add(thirdPartyDir + "libIlmImf.a")
+                    ldFlags.add(thirdPartyDir + "liblibjasper.a")
+                    ldFlags.add(thirdPartyDir + "liblibpng.a")
+                    ldFlags.add(thirdPartyDir + "liblibtiff.a")
+                    ldFlags.add(thirdPartyDir + "liblibwebp.a")
+
+                    ldFlags.add(libsDir + "libopencv_features2d.a")
+                    ldFlags.add(libsDir + "libopencv_flann.a")
+                    ldFlags.add(libsDir + "libopencv_calib3d.a")//注意添加的先后顺序
+                    ldFlags.add(libsDir + "libopencv_imgproc.a")
+                    ldFlags.add(libsDir + "libopencv_core.a")
+                    ldFlags.add(libsDir + "libopencv_highgui.a")
+//                    ldFlags.add(libsDir + "libopencv_photo.a")
+//                    ldFlags.add(libsDir + "libopencv_shape.a")
+//                    ldFlags.add(libsDir + "libopencv_superres.a")
+//                    ldFlags.add(libsDir + "libopencv_objdetect.a")
+//                    ldFlags.add(libsDir + "libopencv_ml.a")
+                    ldFlags.add(thirdPartyDir + "libtbb.a")
+//                    abiFilters.add("armeabi")
+//                    String libsDir = getProjectDir().getParent() + "/native/libs/armeabi/"
+//                    String thirdPartyDir = getProjectDir().getParent() + "/native/3rdparty/libs/armeabi/"
+//
+//                    ldFlags.add(libsDir + "libopencv_features2d.a")
+//                    ldFlags.add(libsDir + "libopencv_flann.a")
+//                    ldFlags.add(libsDir + "libopencv_imgproc.a")
+//                    ldFlags.add(libsDir + "libopencv_core.a")
+//                    ldFlags.add(libsDir + "libopencv_highgui.a")
+//                    ldFlags.add(libsDir + "libopencv_calib3d.a")//注意添加的先后顺序
+//                    ldFlags.add(thirdPartyDir + "libtbb.a")
+                }
+            }
+//            create("arm7") {
+//                ndk.abiFilters.add("armeabi-v7a")
+//            }
+//            create("arm8") {
+//                ndk.abiFilters.add("arm64-v8a")
+//            }
+//            create("x86") {
+//                ndk.abiFilters.add("x86")
+//            }
+//            create("x86-64") {
+//                ndk.abiFilters.add("x86_64")
+//            }
+//            create("mips") {
+//                ndk.abiFilters.add("mips")
+//            }
+//            create("mips-64") {
+//                ndk.abiFilters.add("mips64")
+//            }
+//            // 包括所有的CPU架构
+//            create("all")
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.2.1'
+    testCompile 'junit:junit:4.12'
+}
